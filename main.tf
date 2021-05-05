@@ -11,7 +11,7 @@ locals {
   vpc_id = element(
     concat(
       aws_vpc_ipv4_cidr_block_association.this.*.vpc_id,
-      aws_vpc.this.*.id,
+      aws_vpc.mod.*.id,
       [""],
     ),
     0,
@@ -26,7 +26,7 @@ locals {
 ######
 # VPC
 ######
-resource "aws_vpc" "this" {
+resource "aws_vpc" "mod" {
   count = var.create_vpc ? 1 : 0
 
   cidr_block                       = var.cidr
@@ -49,7 +49,7 @@ resource "aws_vpc" "this" {
 resource "aws_vpc_ipv4_cidr_block_association" "this" {
   count = var.create_vpc && length(var.secondary_cidr_blocks) > 0 ? length(var.secondary_cidr_blocks) : 0
 
-  vpc_id = aws_vpc.this[0].id
+  vpc_id = aws_vpc.mod[0].id
 
   cidr_block = element(var.secondary_cidr_blocks, count.index)
 }
@@ -57,7 +57,7 @@ resource "aws_vpc_ipv4_cidr_block_association" "this" {
 resource "aws_default_security_group" "this" {
   count = var.create_vpc && var.manage_default_security_group ? 1 : 0
 
-  vpc_id = aws_vpc.this[0].id
+  vpc_id = aws_vpc.mod[0].id
 
   dynamic "ingress" {
     for_each = var.default_security_group_ingress
@@ -167,7 +167,7 @@ resource "aws_egress_only_internet_gateway" "this" {
 resource "aws_default_route_table" "default" {
   count = var.create_vpc && var.manage_default_route_table ? 1 : 0
 
-  default_route_table_id = aws_vpc.this[0].default_route_table_id
+  default_route_table_id = aws_vpc.mod[0].default_route_table_id
   propagating_vgws       = var.default_route_table_propagating_vgws
 
   dynamic "route" {
@@ -377,7 +377,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch         = var.map_public_ip_on_launch
   assign_ipv6_address_on_creation = var.public_subnet_assign_ipv6_address_on_creation == null ? var.assign_ipv6_address_on_creation : var.public_subnet_assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.public_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.public_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.public_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.mod[0].ipv6_cidr_block, 8, var.public_subnet_ipv6_prefixes[count.index]) : null
 
   tags = merge(
     {
@@ -404,7 +404,7 @@ resource "aws_subnet" "private" {
   availability_zone_id            = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
   assign_ipv6_address_on_creation = var.private_subnet_assign_ipv6_address_on_creation == null ? var.assign_ipv6_address_on_creation : var.private_subnet_assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.private_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.private_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.private_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.mod[0].ipv6_cidr_block, 8, var.private_subnet_ipv6_prefixes[count.index]) : null
 
   tags = merge(
     {
@@ -430,7 +430,7 @@ resource "aws_subnet" "outpost" {
   availability_zone               = var.outpost_az
   assign_ipv6_address_on_creation = var.outpost_subnet_assign_ipv6_address_on_creation == null ? var.assign_ipv6_address_on_creation : var.outpost_subnet_assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.outpost_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.outpost_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.outpost_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.mod[0].ipv6_cidr_block, 8, var.outpost_subnet_ipv6_prefixes[count.index]) : null
 
   outpost_arn = var.outpost_arn
 
@@ -459,7 +459,7 @@ resource "aws_subnet" "database" {
   availability_zone_id            = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
   assign_ipv6_address_on_creation = var.database_subnet_assign_ipv6_address_on_creation == null ? var.assign_ipv6_address_on_creation : var.database_subnet_assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.database_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.database_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.database_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.mod[0].ipv6_cidr_block, 8, var.database_subnet_ipv6_prefixes[count.index]) : null
 
   tags = merge(
     {
@@ -502,7 +502,7 @@ resource "aws_subnet" "redshift" {
   availability_zone_id            = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
   assign_ipv6_address_on_creation = var.redshift_subnet_assign_ipv6_address_on_creation == null ? var.assign_ipv6_address_on_creation : var.redshift_subnet_assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.redshift_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.redshift_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.redshift_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.mod[0].ipv6_cidr_block, 8, var.redshift_subnet_ipv6_prefixes[count.index]) : null
 
   tags = merge(
     {
@@ -545,7 +545,7 @@ resource "aws_subnet" "elasticache" {
   availability_zone_id            = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
   assign_ipv6_address_on_creation = var.elasticache_subnet_assign_ipv6_address_on_creation == null ? var.assign_ipv6_address_on_creation : var.elasticache_subnet_assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.elasticache_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.elasticache_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.elasticache_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.mod[0].ipv6_cidr_block, 8, var.elasticache_subnet_ipv6_prefixes[count.index]) : null
 
   tags = merge(
     {
@@ -580,7 +580,7 @@ resource "aws_subnet" "intra" {
   availability_zone_id            = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
   assign_ipv6_address_on_creation = var.intra_subnet_assign_ipv6_address_on_creation == null ? var.assign_ipv6_address_on_creation : var.intra_subnet_assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.intra_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.intra_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.intra_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.mod[0].ipv6_cidr_block, 8, var.intra_subnet_ipv6_prefixes[count.index]) : null
 
   tags = merge(
     {
@@ -601,7 +601,7 @@ resource "aws_subnet" "intra" {
 resource "aws_default_network_acl" "this" {
   count = var.create_vpc && var.manage_default_network_acl ? 1 : 0
 
-  default_network_acl_id = element(concat(aws_vpc.this.*.default_network_acl_id, [""]), 0)
+  default_network_acl_id = element(concat(aws_vpc.mod.*.default_network_acl_id, [""]), 0)
 
   # The value of subnet_ids should be any subnet IDs that are not set as subnet_ids
   #   for any of the non-default network ACLs
@@ -670,7 +670,7 @@ resource "aws_default_network_acl" "this" {
 resource "aws_network_acl" "public" {
   count = var.create_vpc && var.public_dedicated_network_acl && length(var.public_subnets) > 0 ? 1 : 0
 
-  vpc_id     = element(concat(aws_vpc.this.*.id, [""]), 0)
+  vpc_id     = element(concat(aws_vpc.mod.*.id, [""]), 0)
   subnet_ids = aws_subnet.public.*.id
 
   tags = merge(
@@ -722,7 +722,7 @@ resource "aws_network_acl_rule" "public_outbound" {
 resource "aws_network_acl" "private" {
   count = var.create_vpc && var.private_dedicated_network_acl && length(var.private_subnets) > 0 ? 1 : 0
 
-  vpc_id     = element(concat(aws_vpc.this.*.id, [""]), 0)
+  vpc_id     = element(concat(aws_vpc.mod.*.id, [""]), 0)
   subnet_ids = aws_subnet.private.*.id
 
   tags = merge(
@@ -774,7 +774,7 @@ resource "aws_network_acl_rule" "private_outbound" {
 resource "aws_network_acl" "outpost" {
   count = var.create_vpc && var.outpost_dedicated_network_acl && length(var.outpost_subnets) > 0 ? 1 : 0
 
-  vpc_id     = element(concat(aws_vpc.this.*.id, [""]), 0)
+  vpc_id     = element(concat(aws_vpc.mod.*.id, [""]), 0)
   subnet_ids = aws_subnet.outpost.*.id
 
   tags = merge(
@@ -826,7 +826,7 @@ resource "aws_network_acl_rule" "outpost_outbound" {
 resource "aws_network_acl" "intra" {
   count = var.create_vpc && var.intra_dedicated_network_acl && length(var.intra_subnets) > 0 ? 1 : 0
 
-  vpc_id     = element(concat(aws_vpc.this.*.id, [""]), 0)
+  vpc_id     = element(concat(aws_vpc.mod.*.id, [""]), 0)
   subnet_ids = aws_subnet.intra.*.id
 
   tags = merge(
@@ -878,7 +878,7 @@ resource "aws_network_acl_rule" "intra_outbound" {
 resource "aws_network_acl" "database" {
   count = var.create_vpc && var.database_dedicated_network_acl && length(var.database_subnets) > 0 ? 1 : 0
 
-  vpc_id     = element(concat(aws_vpc.this.*.id, [""]), 0)
+  vpc_id     = element(concat(aws_vpc.mod.*.id, [""]), 0)
   subnet_ids = aws_subnet.database.*.id
 
   tags = merge(
@@ -930,7 +930,7 @@ resource "aws_network_acl_rule" "database_outbound" {
 resource "aws_network_acl" "redshift" {
   count = var.create_vpc && var.redshift_dedicated_network_acl && length(var.redshift_subnets) > 0 ? 1 : 0
 
-  vpc_id     = element(concat(aws_vpc.this.*.id, [""]), 0)
+  vpc_id     = element(concat(aws_vpc.mod.*.id, [""]), 0)
   subnet_ids = aws_subnet.redshift.*.id
 
   tags = merge(
@@ -982,7 +982,7 @@ resource "aws_network_acl_rule" "redshift_outbound" {
 resource "aws_network_acl" "elasticache" {
   count = var.create_vpc && var.elasticache_dedicated_network_acl && length(var.elasticache_subnets) > 0 ? 1 : 0
 
-  vpc_id     = element(concat(aws_vpc.this.*.id, [""]), 0)
+  vpc_id     = element(concat(aws_vpc.mod.*.id, [""]), 0)
   subnet_ids = aws_subnet.elasticache.*.id
 
   tags = merge(
