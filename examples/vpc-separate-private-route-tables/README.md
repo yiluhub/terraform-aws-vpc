@@ -1,8 +1,8 @@
-# Issue 44 - VPC
+# VPC with separate private route tables
 
-Configuration in this directory creates set of VPC resources to cover issues reported on GitHub:
+Configuration in this directory creates set of VPC resources which may be sufficient for staging or production environment (look into [simple-vpc](../simple-vpc) for more simplified setup). 
 
-* https://github.com/terraform-aws-modules/terraform-aws-vpc/issues/44
+There are public, private, database, ElastiCache, Redshift subnets, NAT Gateways created in each availability zone. **This example sets up separate private route for database, elasticache and redshift subnets.**.
 
 ## Usage
 
@@ -26,6 +26,7 @@ Note that this example may create resources which can cost money (AWS Elastic IP
 | nat\_public\_ips | List of public Elastic IPs created for AWS NAT Gateway |
 | private\_subnets | List of IDs of private subnets |
 | public\_subnets | List of IDs of public subnets |
+| redshift\_subnets | List of IDs of elasticache subnets |
 | vpc\_id | The ID of the VPC |
 
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
