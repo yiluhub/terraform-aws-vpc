@@ -45,7 +45,7 @@ output "vpc_enable_dns_hostnames" {
 
 //output "vpc_enable_classiclink" {
 //  description = "Whether or not the VPC has Classiclink enabled"
-//  value       = "${element(concat(aws_vpc.this.*.enable_classiclink, list("")), 0)}"
+//  value       = "${element(concat(aws_vpc.mod.*.enable_classiclink, list("")), 0)}"
 //}
 
 output "vpc_main_route_table_id" {
@@ -55,12 +55,12 @@ output "vpc_main_route_table_id" {
 
 //output "vpc_ipv6_association_id" {
 //  description = "The association ID for the IPv6 CIDR block"
-//  value       = "${element(concat(aws_vpc.this.*.ipv6_association_id, list("")), 0)}"
+//  value       = "${element(concat(aws_vpc.mod.*.ipv6_association_id, list("")), 0)}"
 //}
 //
 //output "vpc_ipv6_cidr_block" {
 //  description = "The IPv6 CIDR block"
-//  value       = "${element(concat(aws_vpc.this.*.ipv6_cidr_block, list("")), 0)}"
+//  value       = "${element(concat(aws_vpc.mod.*.ipv6_cidr_block, list("")), 0)}"
 //}
 
 output "vpc_secondary_cidr_blocks" {
