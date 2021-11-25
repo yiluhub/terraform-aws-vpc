@@ -23,11 +23,14 @@ output "database_subnets" {
 output "elasticache_subnets" {
   description = "List of IDs of elasticache subnets"
   value       = module.vpc.elasticache_subnets
+<<<<<<<< HEAD:examples/vpc-separate-private-route-tables/outputs.tf
 }
 
 output "redshift_subnets" {
-  description = "List of IDs of elasticache subnets"
+  description = "List of IDs of redshift subnets"
   value       = module.vpc.redshift_subnets
+========
+>>>>>>>> 57ba0ef08063390636daedcf88f71443281c2b84:examples/issue-44-asymmetric-private-subnets/outputs.tf
 }
 
 # NAT gateways
